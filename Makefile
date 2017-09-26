@@ -1,7 +1,7 @@
 
 CC=g++
 AR=ar
-CXXFLAGS=-c -I.
+CXXFLAGS= -c --std=c++14 -I.
 
 %.o:%.cpp
 	$(CC) $(CXXFLAGS) $^ -o $@
