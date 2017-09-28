@@ -1,11 +1,21 @@
 
-#include <store.h>
+#include <irstore.h>
 
-shared_ptr<Store> Store::m_inst = nullptr;
+using namespace std;
 
-shared_ptr<Store> Store::get_instance() {
-    if(!Store::m_inst)
-        Store::m_inst = make_shared<Store>();
+const string& Store::get_path() const {
 
-    return Store::m_inst;
+    return this->m_path;
+}
+
+Store* init_store(const char* path) {
+    return new Store(path);
+}
+
+void free_store(Store* s) {
+    delete s;
+}
+
+const char* get_store_path(Store* s) {
+    return s->get_path().c_str();
 }
