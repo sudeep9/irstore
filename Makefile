@@ -2,7 +2,7 @@
 CC=gcc
 CXX=g++
 AR=ar
-CXXFLAGS=-c -fPIC -I.
+CXXFLAGS=-c --std=c++14 -fPIC -I.
 CFLAGS=-c -fPIC -I.
 LDFLAGS=-L.
 
