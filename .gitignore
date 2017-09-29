@@ -34,5 +34,7 @@
 # Vim backup files
 *.swp
 
+.vscode
+
 storetest
 

@@ -1,0 +1,59 @@
+#ifndef __file_h
+#define __file_h
+
+#ifdef __cplusplus
+
+#include <string>
+#include <memory>
+#include <vector>
+
+#include <irerror.h>
+
+struct File {
+    File(const std::string& store_path, 
+        uint32_t blocksz, 
+        const std::string& src, 
+        const std::string& cow)
+        :m_blocksz(blocksz), m_store_path(store_path), m_srcfile(src), m_cowfile(cow) {
+    }
+
+    IRErrorPtr open();
+    IRErrorPtr read(int64_t offset, char* buf, size_t buflen, ssize_t* bytes_read);
+
+    void close();
+
+private:
+
+    IRErrorPtr open_src_file(); 
+    IRErrorPtr open_cow_file(); 
+
+    std::string m_store_path;
+    std::string m_srcfile;
+    std::string m_cowfile;
+    int m_srcfd;
+    int m_cowfd;
+    uint32_t m_blocksz;
+    std::vector<bool> m_bvec;
+};
+
+#endif
+
+#ifndef __cplusplus
+typedef struct File File;
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+File* create_file(const char* path, uint32_t blocksz, const char* src, const char* cow);
+IRError* open_file(File* f);
+IRError* read_file(File* f, int64_t offset, char* buf, size_t buflen, ssize_t* bytes_read);
+void close_file(File* f);
+void free_file(File* f);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

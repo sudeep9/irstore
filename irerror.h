@@ -1,6 +1,6 @@
 
-#ifndef __error_h
-#define __error_h
+#ifndef __irerror_h
+#define __irerror_h
 
 #ifdef __cplusplus
 
@@ -14,6 +14,20 @@ struct _IRErrorInfo{
     std::string m_msg;
     int64_t m_errno;
 };
+
+#define Try(f) {\
+    auto err = f; \
+    if(err != nullptr) { \
+        return err; \
+    } \
+} 
+
+#define TryC(f) {\
+    auto err = f; \
+    if(err != nullptr) { \
+        return err.release(); \
+    } \
+} 
 
 struct IRError {
     IRError(const std::string& s) {
@@ -35,8 +49,8 @@ struct IRError {
 
     IRError(int64_t _errno, const std::string& s) {
         m_info = std::make_shared<_IRErrorInfo>();
-        m_info->m_msg = s;
         m_info->m_errno = _errno;
+        m_info->m_msg = s;
     }
 
     int64_t err() const {
@@ -49,9 +63,12 @@ struct IRError {
 
 private:
     std::shared_ptr<_IRErrorInfo> m_info;
+    int32_t m_errtype;
 };
 
+typedef std::unique_ptr<IRError> IRErrorPtr;
 
+inline
 std::ostream& operator<<(std::ostream& o, const IRError& e) {
     o<<e.err()<<" msg = " << e.msg();
 
@@ -59,46 +76,37 @@ std::ostream& operator<<(std::ostream& o, const IRError& e) {
 }
 
 template<typename Args>
+inline
 void _make_err(std::ostringstream& o, Args&& arg) {
     o<<std::forward<Args>(arg);
 }
 
-template<typename F, typename ...Args>
-IRError make_err(F&& first, Args&&... args) {
+template<typename ...Args>
+inline
+std::unique_ptr<IRError> make_err(int64_t _errno, const std::string& first, Args&&... args) {
     std::ostringstream buf;
 
     buf<<first;
     _make_err(buf, std::forward<Args>(args)...);
-
-    auto e = IRError(buf.str());
-    return e;
+    return std::make_unique<IRError>(_errno, buf.str());
 } 
 
-template<typename F, typename ...Args>
-IRError make_err(int64_t _errno, F&& first, Args&&... args) {
-    std::ostringstream buf;
-
-    buf<<first;
-    _make_err(buf, std::forward<Args>(args)...);
-
-    auto e = IRError(_errno, buf.str());
-    return e;
+inline
+std::unique_ptr<IRError> make_err(const std::string& s) {
+    return std::make_unique<IRError>(s);
 } 
 
-template<typename F>
-IRError make_err(F&& first) {
-    std::ostringstream buf;
-    buf<<first;
-
-    auto e = IRError(buf.str());
-    return e;
-} 
-
-IRError make_err(int64_t _errno) {
-    auto e = IRError(_errno);
-    return e;
+inline
+std::unique_ptr<IRError> make_err(int64_t _errno) {
+    return std::make_unique<IRError>(_errno);
 }
 
+inline
+std::unique_ptr<IRError> make_err(int64_t _errno, const std::string& s) {
+    return std::make_unique<IRError>(_errno, s);
+}
+
+inline
 IRError* clone_err(const IRError& e) {
     auto new_err = new IRError(e.err(), e.msg());
     return new_err;

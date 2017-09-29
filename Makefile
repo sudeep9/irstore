@@ -16,16 +16,19 @@ LDFLAGS=-L.
 
 artifacts= libirstore.so storetest
 
-libirstore_obj_deps=store.cpp.o irerror.cpp.o
-libirstore_deps=$(libirstore_obj_deps) irerror.h irstore.h
+libirstore_obj_deps=store.cpp.o irerror.cpp.o file.cpp.o
+libirstore_deps=$(libirstore_obj_deps) irerror.h irstore.h file.h
 
 all: $(artifacts)
 
 libirstore.so: $(libirstore_obj_deps)
 	$(CXX) --shared -o $@ $^
 
-storetest: storetest.o
-	$(CC) $^ $(LDFLAGS) -lirstore -o $@
+storetest_obj_deps= storetest.o 
+storetest_deps=$(storetest_obj_deps) file.h irerror.h irstore.h libirstore.so
+
+storetest: $(storetest_deps)
+	$(CC) $(storetest_obj_deps) $(LDFLAGS) -lirstore -o $@
 
 clean:
 	rm -fR *.o

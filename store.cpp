@@ -1,10 +1,11 @@
 
+#include <string>
+
 #include <irstore.h>
 
 using namespace std;
 
 const string& Store::get_path() const {
-
     return this->m_path;
 }
 
