@@ -23,6 +23,16 @@ void cat_file(File* f) {
     }while(br > 0);
 }
 
+void update_file(File* f) {
+    IRError* err = write_file(f, 0, "hello", 5);
+    if(err != NULL) {
+        printf("Error: %s (errno = %ld)\n", get_errmsg(err), get_errno(err));
+        return;
+    }
+
+    cat_file(f);
+}
+
 int main() {
     Store* s = init_store("/home/sudeep/work/store");
     printf("%s\n", get_store_path(s));
@@ -49,7 +59,7 @@ int main() {
         return 1;
     }
 
-    cat_file(f);
+    update_file(f);
 
     free_file(f);
     free_store(s);

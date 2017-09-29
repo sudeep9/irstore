@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <sys/stat.h>
@@ -75,6 +76,28 @@ IRErrorPtr File::read(int64_t offset, char* buf, size_t buflen, ssize_t* bytes_r
     return nullptr;
 }
 
+IRErrorPtr File::write(int64_t offset, const void *buf, size_t count) {
+    auto block_no = offset / m_blocksz;
+
+    unique_ptr<char> read_buf(new char[m_blocksz]);
+    ssize_t byte_count;
+
+    Try(this->read(offset, read_buf.get(), m_blocksz, &byte_count));
+
+    auto start_off = offset % m_blocksz;
+
+    memcpy(read_buf.get() + start_off, buf, count);
+    byte_count = pwrite(m_cowfd, read_buf.get(), m_blocksz, block_no * m_blocksz);
+
+    if(byte_count < 0) {
+        return make_err(errno, "Failed to write file: ", m_cowfile);
+    }
+
+    m_bvec[block_no] = true;
+    return nullptr;
+}
+
+
 File* create_file(const char* path, uint32_t blocksz, const char* src, const char* cow) {
     auto f = new File(path, blocksz, src, cow);
     return f;
@@ -96,6 +119,12 @@ IRError* open_file(File* f) {
 
 IRError* read_file(File* f, int64_t offset, char* buf, size_t buflen, ssize_t* bytes_read) {
     TryC(f->read(offset, buf, buflen, bytes_read));
+
+    return nullptr;
+}
+
+IRError* write_file(File* f, int64_t offset, const void *buf, size_t count) {
+    TryC(f->write(offset, buf, count));
 
     return nullptr;
 }

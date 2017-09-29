@@ -19,6 +19,7 @@ struct File {
 
     IRErrorPtr open();
     IRErrorPtr read(int64_t offset, char* buf, size_t buflen, ssize_t* bytes_read);
+    IRErrorPtr write(int64_t offset, const void *buf, size_t count);
 
     void close();
 
@@ -51,6 +52,7 @@ extern "C" {
 File* create_file(const char* path, uint32_t blocksz, const char* src, const char* cow);
 IRError* open_file(File* f);
 IRError* read_file(File* f, int64_t offset, char* buf, size_t buflen, ssize_t* bytes_read);
+IRError* write_file(File* f, int64_t offset, const void *buf, size_t count);
 void close_file(File* f);
 void free_file(File* f);
 
