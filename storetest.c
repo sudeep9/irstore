@@ -14,7 +14,7 @@ void cat_file(File* f) {
     do {
         IRError* err = read_file(f, off, buf, 10, &br);
         if(err != NULL) {
-            printf("Error: %s (errno = %lld)\n", get_errmsg(err), get_errno(err));
+            printf("Error: %s (errno = %ld)\n", get_errmsg(err), get_errno(err));
             free_err(err);
             return;
         }
@@ -24,16 +24,16 @@ void cat_file(File* f) {
 }
 
 int main() {
-    Store* s = init_store("/Users/sudeepjathar/work/store");
+    Store* s = init_store("/home/sudeep/work/store");
     printf("%s\n", get_store_path(s));
 
-    File* f = create_file(get_store_path(s), 10, "/Users/sudeepjathar/work/testoc.py", "xyz.cow");
+    File* f = create_file(get_store_path(s), 10, "/home/sudeep/work/copy.py", "xyz.cow");
 
     IRError* err = open_file(f);
     if(err == NULL) {
         printf("OK\n");
     }else{
-        printf("%s:%lld\n", get_errmsg(err), get_errno(err));
+        printf("%s:%ld\n", get_errmsg(err), get_errno(err));
         free_err(err);
         return 1;
     }
@@ -44,7 +44,7 @@ int main() {
     if(err == NULL) {
         printf("OK\n");
     }else{
-        printf("%s:%lld\n", get_errmsg(err), get_errno(err));
+        printf("%s:%ld\n", get_errmsg(err), get_errno(err));
         free_err(err);
         return 1;
     }

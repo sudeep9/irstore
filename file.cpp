@@ -31,7 +31,7 @@ IRErrorPtr File::open_src_file() {
     }
 
     auto bit_vec_len = statbuf.st_size/m_blocksz + 1;
-    m_bvec.resize(bit_vec_len, 0);
+    m_bvec.resize(bit_vec_len, false);
 
     return nullptr;
 }
@@ -61,16 +61,18 @@ void File::close() {
 
 IRErrorPtr File::read(int64_t offset, char* buf, size_t buflen, ssize_t* bytes_read) {
     auto block_no = offset / m_blocksz;
+
+    auto fd = m_cowfd;
     if(!m_bvec[block_no]) {
-        *bytes_read = pread(m_srcfd, buf, buflen, offset);
-        if(*bytes_read < 0) {
-            return make_err(errno, "Failed to read file: ", m_srcfile);
-        }
-        return nullptr;
+        fd = m_srcfd;
     }
 
-    *bytes_read = 0;
-    return make_err((int64_t)offset, "Unsupported situation");
+    *bytes_read = pread(fd, buf, buflen, offset);
+    if(*bytes_read < 0) {
+        return make_err(errno, "Failed to read file: ", m_srcfile);
+    }
+
+    return nullptr;
 }
 
 File* create_file(const char* path, uint32_t blocksz, const char* src, const char* cow) {

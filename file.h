@@ -27,14 +27,16 @@ private:
     IRErrorPtr open_src_file(); 
     IRErrorPtr open_cow_file(); 
 
+    uint32_t m_blocksz;
     std::string m_store_path;
     std::string m_srcfile;
     std::string m_cowfile;
     int m_srcfd;
     int m_cowfd;
-    uint32_t m_blocksz;
     std::vector<bool> m_bvec;
 };
+
+std::string join_path(const std::string& a, const std::string& b); 
 
 #endif
 
