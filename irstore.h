@@ -1,6 +1,6 @@
 
-#ifndef __irstore_h
-#define __irstore_h
+#ifndef irstore_h
+#define irstore_h
 
 #ifdef __cplusplus
 

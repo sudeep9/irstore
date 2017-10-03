@@ -1,5 +1,5 @@
-#ifndef __file_h
-#define __file_h
+#ifndef file_h
+#define file_h
 
 #ifdef __cplusplus
 

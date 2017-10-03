@@ -1,10 +1,11 @@
 
 #include <stdio.h>
-#include <stdint.h>
+//#include <stdint.h>
 
 #include <irerror.h>
 #include <irstore.h>
 #include <file.h>
+#include <inttypes.h>
 
 void cat_file(File* f) {
     ssize_t br;
@@ -14,7 +15,7 @@ void cat_file(File* f) {
     do {
         IRError* err = read_file(f, off, buf, 10, &br);
         if(err != NULL) {
-            printf("Error: %s (errno = %ld)\n", get_errmsg(err), get_errno(err));
+            printf("Error: %s (errno = %" PRId64 ")\n", get_errmsg(err), get_errno(err));
             free_err(err);
             return;
         }
@@ -26,7 +27,7 @@ void cat_file(File* f) {
 void update_file(File* f) {
     IRError* err = write_file(f, 0, "hello", 5);
     if(err != NULL) {
-        printf("Error: %s (errno = %ld)\n", get_errmsg(err), get_errno(err));
+        printf("Error: %s (errno = %" PRId64 ")\n", get_errmsg(err), get_errno(err));
         return;
     }
 
@@ -43,7 +44,7 @@ int main() {
     if(err == NULL) {
         printf("OK\n");
     }else{
-        printf("%s:%ld\n", get_errmsg(err), get_errno(err));
+        printf("%s:%" PRId64 "\n", get_errmsg(err), get_errno(err));
         free_err(err);
         return 1;
     }
@@ -54,7 +55,7 @@ int main() {
     if(err == NULL) {
         printf("OK\n");
     }else{
-        printf("%s:%ld\n", get_errmsg(err), get_errno(err));
+        printf("%s:%" PRId64 "\n", get_errmsg(err), get_errno(err));
         free_err(err);
         return 1;
     }

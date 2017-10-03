@@ -31,7 +31,7 @@ IRErrorPtr File::open_src_file() {
         return make_err(errno, "Failed to stat file: ", m_srcfile);
     }
 
-    auto bit_vec_len = statbuf.st_size/m_blocksz + 1;
+    auto bit_vec_len = static_cast<size_t>(statbuf.st_size/m_blocksz + 1);
     m_bvec.resize(bit_vec_len, false);
 
     return nullptr;
@@ -61,7 +61,7 @@ void File::close() {
 }
 
 IRErrorPtr File::read(int64_t offset, char* buf, size_t buflen, ssize_t* bytes_read) {
-    auto block_no = offset / m_blocksz;
+    auto block_no = static_cast<size_t>(offset / m_blocksz);
 
     auto fd = m_cowfd;
     if(!m_bvec[block_no]) {
@@ -77,7 +77,7 @@ IRErrorPtr File::read(int64_t offset, char* buf, size_t buflen, ssize_t* bytes_r
 }
 
 IRErrorPtr File::write(int64_t offset, const void *buf, size_t count) {
-    auto block_no = offset / m_blocksz;
+    auto block_no = static_cast<size_t>(offset / m_blocksz);
 
     unique_ptr<char> read_buf(new char[m_blocksz]);
     ssize_t byte_count;
@@ -87,7 +87,8 @@ IRErrorPtr File::write(int64_t offset, const void *buf, size_t count) {
     auto start_off = offset % m_blocksz;
 
     memcpy(read_buf.get() + start_off, buf, count);
-    byte_count = pwrite(m_cowfd, read_buf.get(), m_blocksz, block_no * m_blocksz);
+    auto write_offset = static_cast<off_t>(block_no * m_blocksz);
+    byte_count = pwrite(m_cowfd, read_buf.get(), m_blocksz, write_offset);
 
     if(byte_count < 0) {
         return make_err(errno, "Failed to write file: ", m_cowfile);

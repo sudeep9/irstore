@@ -1,6 +1,6 @@
 
-#ifndef __irerror_h
-#define __irerror_h
+#ifndef irerror_h
+#define irerror_h
 
 #ifdef __cplusplus
 
@@ -63,7 +63,6 @@ struct IRError {
 
 private:
     std::shared_ptr<_IRErrorInfo> m_info;
-    int32_t m_errtype;
 };
 
 typedef std::unique_ptr<IRError> IRErrorPtr;

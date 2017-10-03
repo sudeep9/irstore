@@ -41,7 +41,7 @@ storetest_deps=$(storetest_obj_deps) file.h irerror.h irstore.h libirstore.a
 
 storetest: $(storetest_deps)
 #	$(CC) $(storetest_obj_deps) $(LDFLAGS) libirstore.so -static -o $@
-	$(CC) $(storetest_obj_deps) $(LDFLAGS) libirstore.a -static -o $@
+	$(CC) $(storetest_obj_deps) $(LDFLAGS) libirstore.a -o $@
 
 clean:
 	rm -fR *.o
