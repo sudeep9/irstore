@@ -25,7 +25,7 @@ void cat_file(File* f) {
 }
 
 void update_file(File* f) {
-    IRError* err = write_file(f, 0, "hello", 5);
+    IRError* err = write_file(f, 21, "1234", 4);
     if(err != NULL) {
         printf("Error: %s (errno = %" PRId64 ")\n", get_errmsg(err), get_errno(err));
         return;
@@ -38,7 +38,7 @@ int main() {
     Store* s = init_store("/home/sudeep/work/store");
     printf("%s\n", get_store_path(s));
 
-    File* f = create_file(get_store_path(s), 10, "/home/sudeep/work/copy.py", "xyz.cow");
+    File* f = create_file(get_store_path(s), 20, "/home/sudeep/work/copy.py", "xyz.cow");
 
     IRError* err = open_file(f);
     if(err == NULL) {

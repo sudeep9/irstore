@@ -78,16 +78,17 @@ IRErrorPtr File::read(int64_t offset, char* buf, size_t buflen, ssize_t* bytes_r
 
 IRErrorPtr File::write(int64_t offset, const void *buf, size_t count) {
     auto block_no = static_cast<size_t>(offset / m_blocksz);
+    auto block_offset = block_no * m_blocksz;
 
     unique_ptr<char> read_buf(new char[m_blocksz]);
     ssize_t byte_count;
 
-    Try(this->read(offset, read_buf.get(), m_blocksz, &byte_count));
+    Try(this->read(block_offset, read_buf.get(), m_blocksz, &byte_count));
 
-    auto start_off = offset % m_blocksz;
+    auto start_off = offset - block_offset;
 
     memcpy(read_buf.get() + start_off, buf, count);
-    auto write_offset = static_cast<off_t>(block_no * m_blocksz);
+    auto write_offset = static_cast<off_t>(block_offset);
     byte_count = pwrite(m_cowfd, read_buf.get(), m_blocksz, write_offset);
 
     if(byte_count < 0) {

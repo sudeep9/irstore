@@ -7,7 +7,8 @@ set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR})
 
-set(CMAKE_CXX_FLAGS "-std=c++14")
+set(CMAKE_CXX_FLAGS "-g -std=c++14")
+set(CMAKE_C_FLAGS "-g")
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Weverything")
@@ -44,6 +45,16 @@ endif()
 #  Executable: storetest 
 ################################################################
 add_executable(storetest storetest.c)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    target_link_libraries(storetest irstore "-static")
+else()
+    target_link_libraries(storetest irstore)
+endif()
+
+################################################################
+#  Executable: bitvectest 
+################################################################
+add_executable(bitvectest bitvectest.cpp)
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     target_link_libraries(storetest irstore "-static")
 else()
