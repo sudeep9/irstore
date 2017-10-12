@@ -44,3 +44,9 @@ RUN cd /root/ && \
     cd /root && \
     rm -fR lmdb
 
+
+
+COPY dockerbuild.sh /root/.
+
+RUN chmod +x /root/dockerbuild.sh
+
