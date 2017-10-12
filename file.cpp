@@ -83,9 +83,9 @@ IRErrorPtr File::write(int64_t offset, const void *buf, size_t count) {
     unique_ptr<char> read_buf(new char[m_blocksz]);
     ssize_t byte_count;
 
-    Try(this->read(block_offset, read_buf.get(), m_blocksz, &byte_count));
+    Try(this->read(static_cast<int64_t>(block_offset), read_buf.get(), m_blocksz, &byte_count));
 
-    auto start_off = offset - block_offset;
+    auto start_off = offset - static_cast<int64_t>(block_offset);
 
     memcpy(read_buf.get() + start_off, buf, count);
     auto write_offset = static_cast<off_t>(block_offset);

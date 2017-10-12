@@ -42,7 +42,7 @@ else()
 endif()
 
 ################################################################
-#  Executable: storetest 
+#  Executable: storetest
 ################################################################
 add_executable(storetest storetest.c)
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
@@ -52,7 +52,7 @@ else()
 endif()
 
 ################################################################
-#  Executable: bitvectest 
+#  Executable: bitvectest
 ################################################################
 add_executable(bitvectest bitvectest.cpp)
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
