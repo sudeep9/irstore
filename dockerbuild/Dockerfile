@@ -20,4 +20,27 @@ RUN cd /root && \
     cp ./cmake-3.9.3-Linux-x86_64/bin/* /usr/bin/. && \
     cp -r ./cmake-3.9.3-Linux-x86_64/share/* /usr/share/.
 
+RUN apt-get update && apt-get install -y git
+
+RUN cd /root/ && \
+    rm -fR doctest && \
+    git clone --depth=1 https://github.com/onqtam/doctest && \
+    cd doctest && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make && \
+    make install && \
+    cd /root && \
+    rm -fR doctest
+
+RUN cd /root/ && \
+    rm -fR lmdb && \
+    git clone --depth=1 https://github.com/LMDB/lmdb.git && \
+    cd lmdb/libraries/liblmdb && \
+    export XCFLAGS="-Wimplicit-fallthrough=0" && \
+    make && \
+    make install && \
+    cd /root && \
+    rm -fR lmdb
 

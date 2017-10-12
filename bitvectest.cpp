@@ -20,13 +20,13 @@ void test() {
         }
     }
 
-    auto buf = new unsigned char[1];
+    unique_ptr<unsigned char[]> buf(new unsigned char[b.get_byte_len()]);
 
-    for(size_t i = 0; i<(len/8); i++) {
-        buf[i] = 85;
+    for(size_t i = 0; i<b.get_byte_len(); i++) {
+        buf[i] = 0x55;
     }
 
-    auto r = memcmp(b.get_data(), buf, b.get_len()/8);
+    auto r = memcmp(b.get_data(), buf.get(), b.get_byte_len());
     cout<<r<<endl;
     {
         ofstream f("abc.dat");
@@ -38,6 +38,8 @@ void test() {
 
         ifstream f("abc.dat");
         BitVec::unmarshal(f, b2);
+        auto r2 = memcmp(b2.get_data(), buf.get(), b2.get_byte_len());
+        cout<<r2<<endl;
     }
 }
 

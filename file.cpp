@@ -23,12 +23,12 @@ string join_path(const string& a, const string& b) {
 IRErrorPtr File::open_src_file() {
     m_srcfd = ::open(m_srcfile.c_str(), O_RDONLY);
     if(m_srcfd < 0) {
-        return make_err(errno, "Failed to open file: ", m_srcfile);
+        return make_err(ErrorType::sys, errno, "Failed to open file: ", m_srcfile);
     }
 
     struct stat statbuf;
     if(fstat(m_srcfd, &statbuf) < 0) {
-        return make_err(errno, "Failed to stat file: ", m_srcfile);
+        return make_err(ErrorType::sys, errno, "Failed to stat file: ", m_srcfile);
     }
 
     auto bit_vec_len = static_cast<size_t>(statbuf.st_size/m_blocksz + 1);
@@ -41,7 +41,7 @@ IRErrorPtr File::open_cow_file() {
     auto cow_path = join_path(m_store_path, m_cowfile);
     m_cowfd = ::open(cow_path.c_str(), O_CREAT | O_RDWR, S_IRWXU);
     if(m_cowfd < 0) {
-        return make_err(errno, "Failed to open file: ", cow_path);
+        return make_err(ErrorType::sys, errno, "Failed to open file: ", cow_path);
     }
 
     return nullptr;
@@ -70,7 +70,7 @@ IRErrorPtr File::read(int64_t offset, char* buf, size_t buflen, ssize_t* bytes_r
 
     *bytes_read = pread(fd, buf, buflen, offset);
     if(*bytes_read < 0) {
-        return make_err(errno, "Failed to read file: ", m_srcfile);
+        return make_err(ErrorType::sys, errno, "Failed to read file: ", m_srcfile);
     }
 
     return nullptr;
@@ -92,7 +92,7 @@ IRErrorPtr File::write(int64_t offset, const void *buf, size_t count) {
     byte_count = pwrite(m_cowfd, read_buf.get(), m_blocksz, write_offset);
 
     if(byte_count < 0) {
-        return make_err(errno, "Failed to write file: ", m_cowfile);
+        return make_err(ErrorType::sys, errno, "Failed to write file: ", m_cowfile);
     }
 
     m_bvec[block_no] = true;

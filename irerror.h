@@ -10,9 +10,12 @@
 #include <string>
 #include <memory>
 
+#include <errortype.h>
+
 struct _IRErrorInfo{
     std::string m_msg;
     int64_t m_errno;
+    ErrorType m_type;
 };
 
 #define Try(f) {\
@@ -30,27 +33,30 @@ struct _IRErrorInfo{
 } 
 
 struct IRError {
-    IRError(const std::string& s) {
+    IRError(ErrorType errtype, const std::string& s) {
         m_info = std::make_shared<_IRErrorInfo>();
 
         m_info->m_msg = s;
         m_info->m_errno = 0;
+        m_info->m_type= errtype;
     }
 
-    IRError(int64_t _errno) {
+    IRError(ErrorType errtype, int64_t _errno) {
         m_info = std::make_shared<_IRErrorInfo>();
 
         std::ostringstream buf;
         buf<<"errno: "<<_errno;
         m_info->m_errno = _errno;
 
+        m_info->m_type= errtype;
         m_info->m_msg = buf.str();
     }
 
-    IRError(int64_t _errno, const std::string& s) {
+    IRError(ErrorType errtype, int64_t _errno, const std::string& s) {
         m_info = std::make_shared<_IRErrorInfo>();
         m_info->m_errno = _errno;
         m_info->m_msg = s;
+        m_info->m_type= errtype;
     }
 
     int64_t err() const {
@@ -59,6 +65,10 @@ struct IRError {
 
     const std::string& msg() const {
         return m_info->m_msg;
+    }
+
+    ErrorType errtype() const {
+        return m_info->m_type;
     }
 
 private:
@@ -82,32 +92,32 @@ void _make_err(std::ostringstream& o, Args&& arg) {
 
 template<typename ...Args>
 inline
-std::unique_ptr<IRError> make_err(int64_t _errno, const std::string& first, Args&&... args) {
+std::unique_ptr<IRError> make_err(ErrorType errtype, int64_t _errno, const std::string& first, Args&&... args) {
     std::ostringstream buf;
 
     buf<<first;
     _make_err(buf, std::forward<Args>(args)...);
-    return std::make_unique<IRError>(_errno, buf.str());
+    return std::make_unique<IRError>(errtype, _errno, buf.str());
 } 
 
 inline
-std::unique_ptr<IRError> make_err(const std::string& s) {
-    return std::make_unique<IRError>(s);
+std::unique_ptr<IRError> make_err(ErrorType errtype, const std::string& s) {
+    return std::make_unique<IRError>(errtype, s);
 } 
 
 inline
-std::unique_ptr<IRError> make_err(int64_t _errno) {
-    return std::make_unique<IRError>(_errno);
+std::unique_ptr<IRError> make_err(ErrorType errtype, int64_t _errno) {
+    return std::make_unique<IRError>(errtype, _errno);
 }
 
 inline
-std::unique_ptr<IRError> make_err(int64_t _errno, const std::string& s) {
-    return std::make_unique<IRError>(_errno, s);
+std::unique_ptr<IRError> make_err(ErrorType errtype, int64_t _errno, const std::string& s) {
+    return std::make_unique<IRError>(errtype, _errno, s);
 }
 
 inline
 IRError* clone_err(const IRError& e) {
-    auto new_err = new IRError(e.err(), e.msg());
+    auto new_err = new IRError(e.errtype(), e.err(), e.msg());
     return new_err;
 }
 

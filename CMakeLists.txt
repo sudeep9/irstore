@@ -7,7 +7,9 @@ set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR})
 
-set(CMAKE_CXX_FLAGS "-g -std=c++14")
+set (CMAKE_CXX_FLAGS "-g -std=c++14 -I/usr/local/include")
+set (CMAKE_CXX_LINKER_FLAGS "-L/usr/local/lib")
+
 set(CMAKE_C_FLAGS "-g")
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
@@ -26,6 +28,7 @@ endif()
 
 include_directories("${PROJECT_SOURCE_DIR}")
 
+
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     execute_process(COMMAND g++ -print-file-name=libstdc++.a OUTPUT_VARIABLE CXX_ARCHIVE_STDLIB OUTPUT_STRIP_TRAILING_WHITESPACE)
     message(STATUS "CUSTOM C++ stlib: ${CXX_ARCHIVE_STDLIB}")
@@ -34,12 +37,16 @@ endif()
 ################################################################
 #  Library: irstore
 ################################################################
-add_library(irstore STATIC store.cpp irerror.cpp file.cpp)
+
+
+add_library(irstore STATIC store.cpp irerror.cpp file.cpp lmdbfile.cpp)
+set(IRSTORE_LINKER_DIR "${CMAKE_CXX_LINKER_FLAGS} -L/use/local/lib/liblmdb.a")
+set(IRSTORE_LINKER_LIBS "/usr/local/lib/liblmdb.a")
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    target_link_libraries(irstore "${CXX_ARCHIVE_STDLIB}")
-else()
-    target_link_libraries(irstore)
+    set(IRSTORE_LINKER_DIR "${IRSTORE_LINKER_DIR} ${CMAKE_CXX_LINKER_FLAGS} ${CXX_ARCHIVE_STDLIB}")
 endif()
+
+target_link_libraries(irstore "${IRSTORE_LINKER_DIR}")
 
 ################################################################
 #  Executable: storetest
