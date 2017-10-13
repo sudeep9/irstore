@@ -4,6 +4,8 @@ add_global_arguments('-std=c++1y', language : 'cpp')
 
 c = meson.get_compiler('c')
 
+thread_dep = dependency('threads')
+
 irlib = static_library('irstore', 
     'file.cpp',
     'irerror.cpp',
@@ -23,4 +25,5 @@ executable('bitvectest',
 executable('lmdbtest', 
     'lmdbtest.cpp', 
         link_args: '/usr/local/lib/liblmdb.a',
-        link_with: irlib)
+        link_with: irlib,
+        dependencies: thread_dep)

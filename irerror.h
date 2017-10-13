@@ -9,6 +9,7 @@
 #include <utility>
 #include <string>
 #include <memory>
+#include <iostream>
 
 #include <errortype.h>
 
@@ -41,7 +42,7 @@ struct _IRErrorInfo{
 
 struct IRError {
     IRError(ErrorType errtype, const std::string& s) {
-        m_info = std::make_shared<_IRErrorInfo>();
+        m_info = new _IRErrorInfo;
 
         m_info->m_msg = s;
         m_info->m_errno = 0;
@@ -49,7 +50,7 @@ struct IRError {
     }
 
     IRError(ErrorType errtype, int64_t _errno) {
-        m_info = std::make_shared<_IRErrorInfo>();
+        m_info = new _IRErrorInfo;
 
         std::ostringstream buf;
         buf<<"errno: "<<_errno;
@@ -60,7 +61,7 @@ struct IRError {
     }
 
     IRError(ErrorType errtype, int64_t _errno, const std::string& s) {
-        m_info = std::make_shared<_IRErrorInfo>();
+        m_info = new _IRErrorInfo;
         m_info->m_errno = _errno;
         m_info->m_msg = s;
         m_info->m_type= errtype;
@@ -78,8 +79,12 @@ struct IRError {
         return m_info->m_type;
     }
 
+    ~IRError() {
+        delete m_info;
+    }
+
 private:
-    std::shared_ptr<_IRErrorInfo> m_info;
+    _IRErrorInfo* m_info;
 };
 
 typedef std::unique_ptr<IRError> IRErrorPtr;
