@@ -98,36 +98,25 @@ std::ostream& operator<<(std::ostream& o, const IRError& e) {
     return o;
 }
 
-template<typename Args>
-inline
-void _make_err(std::ostringstream& o, Args&& arg) {
-    o<<std::forward<Args>(arg);
+template <typename T>
+void _make_err(std::ostringstream& o, T t) {
+    o<<t;
 }
 
-template<typename ...Args>
-inline
+template<typename T, typename... Args>
+void _make_err(std::ostringstream& o, T t, Args... args) {
+    o<<t;
+    _make_err(o, args...) ;
+}
+
+template<typename... Args>
 std::unique_ptr<IRError> make_err(ErrorType errtype, int64_t _errno, const std::string& first, Args&&... args) {
     std::ostringstream buf;
 
-    buf<<first;
-    _make_err(buf, std::forward<Args>(args)...);
+    _make_err(buf, first, args...);
     return std::make_unique<IRError>(errtype, _errno, buf.str());
 } 
 
-inline
-std::unique_ptr<IRError> make_err(ErrorType errtype, const std::string& s) {
-    return std::make_unique<IRError>(errtype, s);
-} 
-
-inline
-std::unique_ptr<IRError> make_err(ErrorType errtype, int64_t _errno) {
-    return std::make_unique<IRError>(errtype, _errno);
-}
-
-inline
-std::unique_ptr<IRError> make_err(ErrorType errtype, int64_t _errno, const std::string& s) {
-    return std::make_unique<IRError>(errtype, _errno, s);
-}
 
 inline
 IRError* clone_err(const IRError& e) {

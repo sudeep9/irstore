@@ -80,7 +80,7 @@ IRErrorPtr LmdbFile::read(uint64_t off, void* buf, size_t readsz, size_t* bytes_
         return make_err(ErrorType::irstore, 1, "Attempt to read past the data");
     }
 
-    *bytes_read = min(data.mv_size, relative_off + readsz) - relative_off;
+    *bytes_read = min(data.mv_size, static_cast<size_t>(relative_off + readsz)) - relative_off;
     memcpy(buf, static_cast<uint8_t*>(data.mv_data) + relative_off, *bytes_read);
 
     rc = mdb_txn_commit(txn);
