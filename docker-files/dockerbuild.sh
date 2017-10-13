@@ -1,18 +1,21 @@
 #!/bin/bash
 
 
+export CC=gcc
+export CXX=g++
+
 cd /code
 rm -fR build
 mkdir build
 cd build
-cmake ..
+meson ..
 if [ $? -ne 0 ]; then
-    echo "cmake failed"
+    echo "meson failed"
     exit 1
 fi
 
-make
+ninja
 if [ $? -ne 0 ]; then
-    echo "make failed"
+    echo "ninja failed"
     exit 1
 fi

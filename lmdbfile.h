@@ -20,6 +20,7 @@ private:
     bool m_opened;
     std::string m_path;
     MDB_env *m_mdb_env;
+    MDB_dbi m_dbi;
 };
 
 #endif

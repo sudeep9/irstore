@@ -32,6 +32,13 @@ struct _IRErrorInfo{
     } \
 } 
 
+#define PrintErr(f) { \
+    auto err = f; \
+    if(err != nullptr) { \
+        cout<<*err<<endl; \
+    } \
+} 
+
 struct IRError {
     IRError(ErrorType errtype, const std::string& s) {
         m_info = std::make_shared<_IRErrorInfo>();
@@ -79,7 +86,9 @@ typedef std::unique_ptr<IRError> IRErrorPtr;
 
 inline
 std::ostream& operator<<(std::ostream& o, const IRError& e) {
-    o<<e.err()<<" msg = " << e.msg();
+    o<<"err type = "<<e.errtype()
+    <<", code = "<<e.err()
+    <<", msg = [" <<e.msg()<<"]";
 
     return o;
 }
