@@ -25,7 +25,7 @@ IRErrorPtr test() {
     Try(f.read(off, reinterpret_cast<void*>(const_cast<char*>(rdbuf)), 100, &bytes_read));
     cout<<rdbuf<<endl;
 
-    Try(f.write(6, reinterpret_cast<void*>(const_cast<char*>("druva")), 5));
+    Try(f.write(6, reinterpret_cast<void*>(const_cast<char*>("12345")), 5));
 
 
     Try(f.read(10, reinterpret_cast<void*>(const_cast<char*>(rdbuf)), 100, &bytes_read));
