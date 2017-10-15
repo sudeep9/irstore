@@ -16,14 +16,15 @@ struct LmdbFile {
         m_read_off = 0;
     }
 
+    IRErrorPtr get_page_size(uint32_t *pagesz) const;
     IRErrorPtr open(const std::string& path);
     IRErrorPtr write(uint64_t off, void* buf, size_t buflen);
     IRErrorPtr read(uint64_t off, void* buf, size_t readsz, size_t* bytes_read);
+    void close();
 
     ~LmdbFile();
 
 private:
-
     bool m_opened;
     std::string m_path;
     MDB_env *m_mdb_env;

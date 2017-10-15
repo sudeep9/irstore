@@ -8,6 +8,21 @@
 
 using namespace std;
 
+IRErrorPtr LmdbFile::get_page_size(uint32_t *pagesz) const {
+    if(!m_opened) {
+        return make_err(ErrorType::irstore, 1, "File not opened yet");
+    }
+
+    MDB_stat s;
+    auto rc = mdb_env_stat(m_mdb_env, &s);
+    if(rc) {
+        return make_err(ErrorType::lmdb, rc, "Failed to get db stat");
+    }
+
+    *pagesz = s.ms_psize;
+
+    return nullptr;
+}
 
 IRErrorPtr LmdbFile::open(const std::string& path) {
     if(m_opened){
@@ -20,7 +35,7 @@ IRErrorPtr LmdbFile::open(const std::string& path) {
         return make_err(ErrorType::lmdb, rc, "Failed to create environment");
     }
 
-    rc = mdb_env_open(m_mdb_env, path.c_str(), MDB_NOSUBDIR, 0664);
+    rc = mdb_env_open(m_mdb_env, path.c_str(), MDB_WRITEMAP | MDB_NOSUBDIR, 0664);
     if(rc) {
         mdb_env_close(m_mdb_env);
         return make_err(ErrorType::lmdb, rc, "Failed to open env, db = ", path);
@@ -111,7 +126,6 @@ IRErrorPtr LmdbFile::write(uint64_t off, void* buf, size_t buflen) {
     }
 
     rc = mdb_get(txn, m_dbi, &key, &data);
-    unique_ptr<uint8_t[]> writebuf;
 
     switch (rc) {
     case MDB_NOTFOUND:
@@ -121,13 +135,11 @@ IRErrorPtr LmdbFile::write(uint64_t off, void* buf, size_t buflen) {
 
     case MDB_SUCCESS:
         if( (relative_off + buflen) > data.mv_size ) {
-            return make_err(ErrorType::irstore, 1, "Attempt to write past the data size");
+            return make_err(ErrorType::irstore, 1, 
+                "Attempt to write past (",relative_off + buflen,") the data size (",data.mv_size,")");
         }
 
-        writebuf = make_unique<uint8_t[]>(data.mv_size);
-        memcpy(writebuf.get(), data.mv_data, data.mv_size);
-        memcpy(writebuf.get() + relative_off, buf, buflen);
-        data.mv_data = writebuf.get();
+        memcpy(data.mv_data + relative_off, buf, buflen);
         break;
 
     default:
@@ -147,6 +159,12 @@ IRErrorPtr LmdbFile::write(uint64_t off, void* buf, size_t buflen) {
     }
 
     return nullptr;
+}
+
+void LmdbFile::close() {
+    mdb_dbi_close(m_mdb_env, m_dbi);
+    mdb_env_close(m_mdb_env);
+    m_opened = false;
 }
 
 LmdbFile::~LmdbFile() {
