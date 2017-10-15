@@ -35,7 +35,7 @@
 *.swp
 
 build
-
+*.log
 .vscode
 
 storetest

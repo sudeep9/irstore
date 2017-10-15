@@ -57,6 +57,18 @@ RUN cd /root/ && \
 
 RUN cd /usr/include && wget https://github.com/nlohmann/json/raw/develop/src/json.hpp
 
+RUN cd /root/ && \
+    rm -fR lmdb && \
+    git clone --depth=1 https://github.com/gabime/spdlog.git &&\
+    cd spdlog && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make && \
+    make install && \
+    cd /root && \
+    rm -fR spdlog
+
 COPY dockerbuild.sh /root/.
 
 RUN chmod +x /root/dockerbuild.sh

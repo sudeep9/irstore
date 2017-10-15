@@ -6,11 +6,14 @@
 #include <chrono>
 
 #include <lmdbfile.h>
+#include <spdlog/spdlog.h>
 
 using namespace std;
 using namespace std::chrono;
+using namespace spdlog;
 
 IRErrorPtr test();
+void setup_log();
 
 IRErrorPtr test() {
     LmdbFile f(5);
@@ -24,15 +27,13 @@ IRErrorPtr test() {
     cout<<"page_size = "<<pagesz<<endl;
 
     const char* hello_str = "hello world";
-    const char* num_str = "1234567890";
     const uint8_t* buf = reinterpret_cast<const uint8_t*>(hello_str);
-    const uint8_t* num_buf = reinterpret_cast<const uint8_t*>(num_str);
     uint64_t off = 0;
     uint8_t rdbuf[100];
     size_t bytes_read;
 
     auto start = steady_clock::now();
-    for(int i=0; i<1; i++) {
+    for(int i=0; i<10; i++) {
         Try(f.write(off, buf, strlen(hello_str) + 1));
         //Try(f.read(off, rdbuf, 100, &bytes_read));
         //cout<<rdbuf<<endl;
@@ -53,7 +54,15 @@ IRErrorPtr test() {
     return nullptr;
 }
 
+void setup_log() {
+    auto log = spdlog::basic_logger_mt("irstore", "lmdbtest.log", true);
+    log->set_level(spdlog::level::trace); 
+    log->set_pattern("[%d:%m:%C %H:%M:%S] %L: %v");
+}
+
 int main() {
+    setup_log();
+
     auto err = test();
     if(err) {
         cout<<*err<<endl;
