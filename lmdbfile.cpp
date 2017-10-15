@@ -67,7 +67,7 @@ IRErrorPtr LmdbFile::open(const std::string& path) {
 }
 
 IRErrorPtr LmdbFile::read(uint64_t off, uint8_t* buf, size_t readsz, size_t* bytes_read) {
-    uint64_t aligned_off = off / m_blocksz;
+    uint64_t aligned_off = (off / m_blocksz)*m_blocksz;
     uint64_t relative_off = off - aligned_off;
 
     MDB_txn *txn;
@@ -87,7 +87,7 @@ IRErrorPtr LmdbFile::read(uint64_t off, uint8_t* buf, size_t readsz, size_t* byt
     rc = mdb_get(txn, m_dbi, &key, &data);
     if(rc) {
         mdb_txn_abort(txn);
-        return make_err(ErrorType::lmdb, rc, "Failed to read data");
+        return make_err(ErrorType::lmdb, rc, "Read error. off=", aligned_off, ", msg=", mdb_strerror(rc));
     }
 
     if(relative_off > data.mv_size) {
@@ -117,6 +117,7 @@ IRErrorPtr LmdbFile::write_block(uint64_t off, uint64_t write_off, MDB_cursor* c
     auto newlen = write_off + buflen;
 
     auto rc = mdb_cursor_get(cur, &key, &data, MDB_SET);
+    uint32_t cur_op_flag = 0;
 
     unique_ptr<uint8_t[]> overwrite_buf;
 
@@ -145,21 +146,21 @@ IRErrorPtr LmdbFile::write_block(uint64_t off, uint64_t write_off, MDB_cursor* c
         }
 
         memcpy(static_cast<uint8_t*>(data.mv_data) + write_off, buf, buflen);
+        cur_op_flag = MDB_CURRENT;
         break;
     default:
-        return make_err(ErrorType::lmdb, rc, "Failed to read data");
+        return make_err(ErrorType::lmdb, rc, "Failed to read data: ", mdb_strerror(rc));
     }
-    rc = mdb_cursor_put(cur, &key, &data, MDB_CURRENT);
+
+    rc = mdb_cursor_put(cur, &key, &data, cur_op_flag);
     if(rc) {
-        return make_err(ErrorType::lmdb, rc, "Failed to put data");
+        return make_err(ErrorType::lmdb, rc, "Failed to put data: ", mdb_strerror(rc));
     }
 
     return nullptr;
 }
 
 IRErrorPtr LmdbFile::write(uint64_t off, const uint8_t* buf, size_t buflen) {
-    uint64_t aligned_off = off / m_blocksz;
-    uint64_t relative_off = off - aligned_off;
 
     MDB_txn *txn;
 
@@ -176,14 +177,26 @@ IRErrorPtr LmdbFile::write(uint64_t off, const uint8_t* buf, size_t buflen) {
         return make_err(ErrorType::lmdb, rc, "Failed to open cursor");
     }
 
-    auto err = this->write_block(aligned_off, relative_off, cur, buf, buflen);
-    mdb_cursor_close(cur);
+    uint64_t aligned_off = (off / m_blocksz) * m_blocksz;
+    uint64_t relative_off = off - aligned_off;
+    uint64_t end_aligned_off = ((off + buflen) / m_blocksz)*m_blocksz;
 
-    if(err) {
-        mdb_txn_abort(txn);
-        return err;
+    auto buf_start_off = 0;
+    for(;aligned_off <= end_aligned_off; aligned_off += m_blocksz) {
+        auto cut_len = min(relative_off + buflen - buf_start_off, static_cast<uint64_t>(m_blocksz)) - relative_off;
+        if(!cut_len) continue;
+
+        auto err = this->write_block(aligned_off, relative_off, cur, buf + buf_start_off, cut_len);
+        if(err) {
+            mdb_cursor_close(cur);
+            mdb_txn_abort(txn);
+            return err;
+        }
+        buf_start_off += cut_len;
+        relative_off = 0;
     }
 
+    mdb_cursor_close(cur);
     rc = mdb_txn_commit(txn);
     if(rc) {
         return make_err(ErrorType::lmdb, rc, "Failed to commit transaction");

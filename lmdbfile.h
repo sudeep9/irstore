@@ -8,7 +8,6 @@
 #include <lmdb.h>
 #include <irerror.h>
 
-
 struct LmdbFile {
 
     LmdbFile(uint32_t blocksz): m_opened(false), m_mdb_env(nullptr), m_blocksz(blocksz){

@@ -13,7 +13,7 @@ using namespace std::chrono;
 IRErrorPtr test();
 
 IRErrorPtr test() {
-    LmdbFile f(4096);
+    LmdbFile f(5);
     string path = string(getenv("HOME")) + "/work/irdata/f1.dat";
 
     Try(f.open(path));
@@ -32,15 +32,18 @@ IRErrorPtr test() {
     size_t bytes_read;
 
     auto start = steady_clock::now();
-    for(int i=0; i<100000; i++) {
+    for(int i=0; i<1; i++) {
         Try(f.write(off, buf, strlen(hello_str) + 1));
         //Try(f.read(off, rdbuf, 100, &bytes_read));
         //cout<<rdbuf<<endl;
 
-        Try(f.write(6, num_buf, i % 12));
-        Try(f.read(0, rdbuf, 100, &bytes_read));
-        //rdbuf[bytes_read] = '\0';
-        //cout<<bytes_read<<": "<<rdbuf<<endl;
+        //Try(f.write(6, num_buf, i % 12));
+        Try(f.read(0, rdbuf, 5, &bytes_read));
+        rdbuf[bytes_read] = '\0';
+        cout<<bytes_read<<": "<<rdbuf<<endl;
+        Try(f.read(5, rdbuf, 5, &bytes_read));
+        rdbuf[bytes_read] = '\0';
+        cout<<bytes_read<<": "<<rdbuf<<endl;
     }
     auto end = steady_clock::now();
     duration<double> time_span = duration_cast<duration<double>>(end - start);
