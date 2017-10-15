@@ -69,6 +69,8 @@ RUN cd /root/ && \
     cd /root && \
     rm -fR spdlog
 
+ENV LC_ALL=C.UTF-8
+
 COPY dockerbuild.sh /root/.
 
 RUN chmod +x /root/dockerbuild.sh

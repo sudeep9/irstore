@@ -26,6 +26,7 @@ struct LmdbFile {
     ~LmdbFile();
 
 private:
+    IRErrorPtr read_block(uint64_t off, uint64_t read_off, MDB_cursor* cur, uint8_t* buf, size_t buflen, size_t *bytes_read, bool* missing);
     IRErrorPtr write_block(uint64_t off, uint64_t write_off, MDB_cursor* cur, const uint8_t* buf, size_t buflen);
     bool m_opened;
     std::string m_path;

@@ -1,4 +1,7 @@
 
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest.h>
+
 #include <bitvec.h>
 #include <iostream>
 #include <fstream>
@@ -43,19 +46,6 @@ void test() {
     }
 }
 
-/*
-void test() {
-    BitVec b(1024);
-    b.set(0x30);
-    cout<<b.get(0x30)<<endl;
-
-    ofstream f("abc.dat");
-    auto data = reinterpret_cast<const char*>(b.get_data());
-    f.write(data, static_cast<long>(b.get_len()));
-}
-*/
-
-int main() {
+TEST_CASE("bit-vector") {
     test();
-    return 0;
-}
+} 

@@ -37,6 +37,8 @@
 build
 *.log
 .vscode
+*.dat
+*lock
 
 storetest
 

@@ -77,18 +77,54 @@ IRErrorPtr LmdbFile::open(const std::string& path) {
     return nullptr;
 }
 
+IRErrorPtr LmdbFile::read_block(uint64_t off, uint64_t read_off, MDB_cursor* cur, uint8_t* buf, size_t buflen, size_t *bytes_read, bool* missing) {
+    MDB_val key, data;
+
+    //off is aligned_off
+    key.mv_size = sizeof(off);
+    key.mv_data = &off;
+
+    *missing = true;
+
+    auto rc = mdb_cursor_get(cur, &key, &data, MDB_SET);
+    SPDLOG_TRACE(m_log, "lmdb {} read_block o={} get rc={}", m_dbi, off, rc);
+    switch(rc) {
+    case MDB_SUCCESS:
+        *missing = false;
+
+        *bytes_read = min(static_cast<uint64_t>(data.mv_size), read_off + buflen);
+        
+        break;
+
+    //Do nothing here if key is not present
+    case MDB_NOTFOUND:
+        break;
+
+    default:
+        return make_err(ErrorType::lmdb, rc, "Failed to read at off = ",off,": ", mdb_strerror(rc));
+    }
+    return nullptr;
+}
+
 IRErrorPtr LmdbFile::read(uint64_t off, uint8_t* buf, size_t readsz, size_t* bytes_read) {
-    uint64_t aligned_off = (off / m_blocksz)*m_blocksz;
-    uint64_t relative_off = off - aligned_off;
-
     MDB_txn *txn;
-
     auto rc = mdb_txn_begin(m_mdb_env, nullptr, MDB_RDONLY, &txn);
     if(rc) {
         mdb_txn_abort(txn);
         return make_err(ErrorType::lmdb, rc, "Failed to start transaction");
     }
 
+    MDB_cursor* cur;
+    rc = mdb_cursor_open(txn, m_dbi, &cur);
+    SPDLOG_TRACE(m_log, "lmdb {} write o={} open cursor rc={}", m_dbi, off, rc);
+    if(rc) {
+        SPDLOG_TRACE(m_log, "lmdb {} write o={} txn abort", m_dbi, off);
+        mdb_txn_abort(txn);
+        return make_err(ErrorType::lmdb, rc, "Failed to open cursor");
+    }
+
+    uint64_t aligned_off = (off / m_blocksz) * m_blocksz;
+    uint64_t relative_off = off - aligned_off;
     MDB_val key;
     key.mv_size = sizeof(uint64_t);
     key.mv_data = &aligned_off;

@@ -1,4 +1,6 @@
 
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest.h>
 #include <iostream>
 #include <cstdlib>
 #include <string>
@@ -17,7 +19,7 @@ void setup_log();
 
 IRErrorPtr test() {
     LmdbFile f(5);
-    string path = string(getenv("HOME")) + "/work/irdata/f1.dat";
+    string path("./f1.dat");
 
     Try(f.open(path));
 
@@ -60,6 +62,15 @@ void setup_log() {
     log->set_pattern("[%d:%m:%C %H:%M:%S] %L: %v");
 }
 
+TEST_CASE("root") {
+    setup_log();
+
+    SUBCASE("read-write") {
+        test();
+    }
+}
+
+/*
 int main() {
     setup_log();
 
@@ -69,3 +80,4 @@ int main() {
     }
     return 0;
 }
+*/
