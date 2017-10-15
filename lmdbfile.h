@@ -25,6 +25,7 @@ struct LmdbFile {
     ~LmdbFile();
 
 private:
+    IRErrorPtr write_block(uint64_t off, uint64_t write_off, MDB_cursor* cur, void* buf, size_t buflen);
     bool m_opened;
     std::string m_path;
     MDB_env *m_mdb_env;

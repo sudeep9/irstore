@@ -3,10 +3,12 @@
 #include <cstdlib>
 #include <string>
 #include <string.h>
+#include <chrono>
 
 #include <lmdbfile.h>
 
 using namespace std;
+using namespace std::chrono;
 
 IRErrorPtr test();
 
@@ -26,16 +28,19 @@ IRErrorPtr test() {
     char rdbuf[100];
     size_t bytes_read;
 
+    auto start = steady_clock::now();
     for(int i=0; i<1000; i++) {
         Try(f.write(off, reinterpret_cast<void*>(const_cast<char*>(buf)), strlen(buf) + 1));
-        Try(f.read(off, reinterpret_cast<void*>(const_cast<char*>(rdbuf)), 100, &bytes_read));
+        //Try(f.read(off, reinterpret_cast<void*>(const_cast<char*>(rdbuf)), 100, &bytes_read));
         //cout<<rdbuf<<endl;
 
-        Try(f.write(6, reinterpret_cast<void*>(const_cast<char*>("1234567890")), 10));
-        Try(f.read(0, reinterpret_cast<void*>(const_cast<char*>(rdbuf)), 100, &bytes_read));
-        cout<<bytes_read<<": "<<rdbuf<<endl;
+        //Try(f.write(6, reinterpret_cast<void*>(const_cast<char*>("*****")), 5));
+        //Try(f.read(0, reinterpret_cast<void*>(const_cast<char*>(rdbuf)), 100, &bytes_read));
+        //cout<<bytes_read<<": "<<rdbuf<<endl;
     }
-
+    auto end = steady_clock::now();
+    duration<double> time_span = duration_cast<duration<double>>(end - start);
+    cout<<"time elapsed = "<<time_span.count()<<" secs"<<endl;
     f.close();
 
     return nullptr;
