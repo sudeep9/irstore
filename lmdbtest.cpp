@@ -23,19 +23,23 @@ IRErrorPtr test() {
     Try(f.get_page_size(&pagesz));
     cout<<"page_size = "<<pagesz<<endl;
 
-    const char* buf = "hello world";
+    const char* hello_str = "hello world";
+    const char* num_str = "1234567890";
+    const uint8_t* buf = reinterpret_cast<const uint8_t*>(hello_str);
+    const uint8_t* num_buf = reinterpret_cast<const uint8_t*>(num_str);
     uint64_t off = 0;
-    char rdbuf[100];
+    uint8_t rdbuf[100];
     size_t bytes_read;
 
     auto start = steady_clock::now();
-    for(int i=0; i<1000; i++) {
-        Try(f.write(off, reinterpret_cast<void*>(const_cast<char*>(buf)), strlen(buf) + 1));
-        //Try(f.read(off, reinterpret_cast<void*>(const_cast<char*>(rdbuf)), 100, &bytes_read));
+    for(int i=0; i<100000; i++) {
+        Try(f.write(off, buf, strlen(hello_str) + 1));
+        //Try(f.read(off, rdbuf, 100, &bytes_read));
         //cout<<rdbuf<<endl;
 
-        //Try(f.write(6, reinterpret_cast<void*>(const_cast<char*>("*****")), 5));
-        //Try(f.read(0, reinterpret_cast<void*>(const_cast<char*>(rdbuf)), 100, &bytes_read));
+        Try(f.write(6, num_buf, i % 12));
+        Try(f.read(0, rdbuf, 100, &bytes_read));
+        //rdbuf[bytes_read] = '\0';
         //cout<<bytes_read<<": "<<rdbuf<<endl;
     }
     auto end = steady_clock::now();

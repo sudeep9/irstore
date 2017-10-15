@@ -66,7 +66,7 @@ IRErrorPtr LmdbFile::open(const std::string& path) {
     return nullptr;
 }
 
-IRErrorPtr LmdbFile::read(uint64_t off, void* buf, size_t readsz, size_t* bytes_read) {
+IRErrorPtr LmdbFile::read(uint64_t off, uint8_t* buf, size_t readsz, size_t* bytes_read) {
     uint64_t aligned_off = off / m_blocksz;
     uint64_t relative_off = off - aligned_off;
 
@@ -106,7 +106,7 @@ IRErrorPtr LmdbFile::read(uint64_t off, void* buf, size_t readsz, size_t* bytes_
     return nullptr;
 }
 
-IRErrorPtr LmdbFile::write_block(uint64_t off, uint64_t write_off, MDB_cursor* cur, void* buf, size_t buflen) {
+IRErrorPtr LmdbFile::write_block(uint64_t off, uint64_t write_off, MDB_cursor* cur, const uint8_t* buf, size_t buflen) {
     MDB_val key;
     MDB_val data;
 
@@ -114,23 +114,38 @@ IRErrorPtr LmdbFile::write_block(uint64_t off, uint64_t write_off, MDB_cursor* c
     key.mv_size = sizeof(off);
     key.mv_data = &off;
 
+    auto newlen = write_off + buflen;
+
     auto rc = mdb_cursor_get(cur, &key, &data, MDB_SET);
+
+    unique_ptr<uint8_t[]> overwrite_buf;
 
     switch (rc) {
     case MDB_NOTFOUND:
         data.mv_size = buflen;
-        data.mv_data = buf;
+        data.mv_data = const_cast<void*>(reinterpret_cast<const void*>(buf));
         break;
 
     case MDB_SUCCESS:
-        if( (write_off + buflen) > data.mv_size ) {
+        if(newlen > m_blocksz) {
+            return make_err(ErrorType::irstore, 1, 
+                "Attempt to write past (", write_off + buflen,") the block size (",m_blocksz,")");
+        }
+        if(newlen > data.mv_size) {
+            /*
             return make_err(ErrorType::irstore, 1, 
                 "Attempt to write past (", write_off + buflen,") the data size (",data.mv_size,")");
+            */
+
+
+            overwrite_buf = unique_ptr<uint8_t[]>(new uint8_t[newlen]);
+            memcpy(overwrite_buf.get(), data.mv_data, data.mv_size);
+            data.mv_data = overwrite_buf.get();
+            data.mv_size = newlen;
         }
 
         memcpy(static_cast<uint8_t*>(data.mv_data) + write_off, buf, buflen);
         break;
-
     default:
         return make_err(ErrorType::lmdb, rc, "Failed to read data");
     }
@@ -142,7 +157,7 @@ IRErrorPtr LmdbFile::write_block(uint64_t off, uint64_t write_off, MDB_cursor* c
     return nullptr;
 }
 
-IRErrorPtr LmdbFile::write(uint64_t off, void* buf, size_t buflen) {
+IRErrorPtr LmdbFile::write(uint64_t off, const uint8_t* buf, size_t buflen) {
     uint64_t aligned_off = off / m_blocksz;
     uint64_t relative_off = off - aligned_off;
 
