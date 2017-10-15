@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdint.h>
 
+#include <irstorelog.h>
 #include <lmdbfile.h>
 
 using namespace std;

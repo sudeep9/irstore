@@ -7,14 +7,14 @@
 
 #include <lmdb.h>
 #include <irerror.h>
-#include <spdlog/spdlog.h>
+#include <irstorelog.h>
 
 struct LmdbFile {
 
     LmdbFile(uint32_t blocksz): m_opened(false), m_mdb_env(nullptr), m_blocksz(blocksz){
         m_write_off = 0;
         m_read_off = 0;
-        m_log = spdlog::get("irstore");
+        m_log = get_irstore_log();
     }
 
     IRErrorPtr get_page_size(uint32_t *pagesz) const;
