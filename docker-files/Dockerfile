@@ -12,7 +12,8 @@ RUN apt-get update && \
 
 RUN apt-get install -y make g++-7 && \
     ln -s /usr/bin/gcc-7 /usr/bin/gcc && \
-    ln -s /usr/bin/g++-7 /usr/bin/g++
+    ln -s /usr/bin/g++-7 /usr/bin/g++ 
+
 
 #--------------------------------------------------------------
 # Install basic utils
@@ -32,7 +33,7 @@ RUN cd /root && \
 RUN apt-get update && \
     apt-get install -y git python3-pip python-pip && \
     pip3 install meson && \
-    pip install ninja
+    pip install ninja gcovr 
 
 RUN cd /root/ && \
     rm -fR doctest && \
@@ -69,9 +70,7 @@ RUN cd /root/ && \
     cd /root && \
     rm -fR spdlog
 
+RUN mv /usr/bin/gcov /usr/bin/gcov.old && \
+    ln -s /usr/bin/gcov-7 /usr/bin/gcov
+
 ENV LC_ALL=C.UTF-8
-
-COPY dockerbuild.sh /root/.
-
-RUN chmod +x /root/dockerbuild.sh
-

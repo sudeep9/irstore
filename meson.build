@@ -14,8 +14,9 @@ irstore_headers = declare_dependency(compile_args: '-I' + meson.source_root())
 ##########################################
 thread_dep = dependency('threads')
 log_with_trace = declare_dependency(compile_args: '-DSPDLOG_TRACE_ON')
+#cpp_coverage = declare_dependency(compile_args: '--coverage', link_args: '-lgcov')
 cpp_coverage = declare_dependency(
-    compile_args:'--coverage',
+    compile_args: ['-fprofile-arcs', '-ftest-coverage'],
     link_args: '-lgcov')
 
 doctest_dep = declare_dependency(compile_args: '-I/usr/local/include/doctest')

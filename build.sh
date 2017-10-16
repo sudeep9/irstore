@@ -24,7 +24,25 @@ meson_build() {
         exit 1
     fi
 
-    meson test
+    echo "----------------------------------------------"
+    echo "Running tests"
+    echo "----------------------------------------------"
+    ninja test
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
+
+    echo "----------------------------------------------"
+    echo "Generating coverage report"
+    echo "----------------------------------------------"
+    mkdir cov
+    cd ..
+    gcovr -r . -b --html --html-details -o build/cov/report.html
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
+    echo "Coverage at: build/cov/report.html"
+    
 }
 
 
