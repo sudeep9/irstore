@@ -4,7 +4,7 @@
 
 #include <irerror.h>
 #include <irstore.h>
-#include <file.h>
+#include <sparsefile.h>
 #include <inttypes.h>
 
 void cat_file(File* f) {

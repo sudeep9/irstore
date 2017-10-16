@@ -1,29 +1,9 @@
 #!/bin/bash
 
-build_system=meson
+export INC_BUILD=0
+export TESTS_ONLY=0
 
-if [ $# -gt 0 ]; then
-    build_system=$1
-fi
-
-meson_build() {
-    rm -fR build
-    mkdir build
-    cd build
-
-    export CC=gcc
-    export CXX=g++
-
-    meson ..
-    if [ $? -ne 0 ]; then
-        exit 1
-    fi
-
-    ninja
-    if [ $? -ne 0 ]; then
-        exit 1
-    fi
-
+run_ninja_tests() {
     echo "##############################################"
     echo "Running tests"
     echo "##############################################"
@@ -43,18 +23,81 @@ meson_build() {
         exit 1
     fi
     echo "Coverage at: build/cov/report.html"
-    
 }
 
+run_ninja() {
+    cd ./build
 
+    if [ $TESTS_ONLY == 0 ]; then 
+        ninja
+        if [ $? -ne 0 ]; then
+            exit 1
+        fi
+    fi
 
-case $build_system in 
-    meson)
-        meson_build
+    run_ninja_tests
+}
+
+run_meson() {
+    rm -fR build
+    mkdir build
+    cd build
+
+    meson ..
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
+
+    cd $ROOTDIR
+}
+
+meson_build() {
+    export CC=gcc
+    export CXX=g++
+
+    if [ $INC_BUILD == 0 ]; then
+        run_meson
+    else
+        if [ ! -d ./build ]; then
+            echo "Error: run full build first"
+            exit 1
+        fi
+    fi
+
+    cd $ROOTDIR
+
+    run_ninja
+}
+
+if [ $# -gt 0 ]; then
+    if [ $1 = "--help" ]; then
+        echo "Options: inc test"
+        echo "inc  => Run incremental build"
+        echo "test => Run only test"
+        exit 1
+    fi
+fi
+
+export ROOTDIR=$(pwd)
+
+for opt in $*
+do
+    case $opt in
+    inc)
+        export INC_BUILD=1
+    ;;
+
+    test)
+        export INC_BUILD=1
+        export TESTS_ONLY=1
     ;;
 
     *)
-        echo "Unknown build system: $build_system"
+        echo "Unknown option: [$opt]"
+        exit 1
     ;;
-esac
+    esac
+done
+
+meson_build
 
