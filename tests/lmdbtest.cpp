@@ -14,6 +14,8 @@ using namespace std;
 using namespace std::chrono;
 using namespace spdlog;
 
+bool logging_init;
+
 IRErrorPtr test();
 void setup_log();
 
@@ -57,13 +59,40 @@ IRErrorPtr test() {
 }
 
 void setup_log() {
+    if(logging_init) 
+        return;
+
     auto log = spdlog::basic_logger_mt("irstore", "lmdbtest.log", true);
     log->set_level(spdlog::level::trace); 
     log->set_pattern("[%d:%m:%C %H:%M:%S] %L: %v");
+    logging_init = true;
 }
 
 TEST_CASE("root") {
     setup_log();
+
+    SUBCASE("unopened-getpagesz") {
+        LmdbFile f(5);
+
+        uint32_t pagesz;
+        auto err = f.get_page_size(&pagesz);
+        CHECK(err != nullptr);
+    }
+
+    SUBCASE("opened-getpagesz") {
+        LmdbFile f(5);
+
+        auto err = f.open("opened-getpagesz");
+        CHECK(err == nullptr);
+
+        uint32_t pagesz;
+        err = f.get_page_size(&pagesz);
+        CHECK_MESSAGE(err == nullptr, "Error: "<<*err);
+
+        err = f.open("opened-getpagesz");
+        CHECK_MESSAGE(err != nullptr, "Expected to fail");
+
+    }
 
     SUBCASE("read-write") {
         test();
